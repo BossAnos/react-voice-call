@@ -155,7 +155,7 @@ function App() {
                 </label>
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control w-50"
                   id="username"
                   value={username}
                   autoFocus
@@ -182,7 +182,7 @@ function App() {
                 <input
                   type="text"
                   value={friendUsername}
-                  className="form-control"
+                  className="form-control w-50"
                   id="friend-username"
                   placeholder="Enter friend's ID"
                   disabled={isCalling || loading}
