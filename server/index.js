@@ -1,11 +1,12 @@
+require('dotenv').config();
 const express = require("express");
 const jwt = require("jsonwebtoken");
 
 const app = express();
 const port = 8000;
 
-const API_KEY_SID = "SK.0.cHtsUlygUPjWbD7f7Swhg6klcQmBHO";
-const API_KEY_SECRET = "VW9NZzcwaHJtbG5MTjZDeW1IdDFPV1ZibEJKeGpoYw==";
+const API_KEY_SID = process.env.API_KEY_SID
+const API_KEY_SECRET = process.env.API_KEY_SECRET
 
 app.get("/", (req, res) => {
   const username = req.query.u;
