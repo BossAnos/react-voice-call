@@ -5,13 +5,13 @@ import "bootstrap/dist/css/bootstrap.min.css";
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
-  const [accessToken, setAccessToken] = useState("");
   const [callStatus, setCallStatus] = useState("");
   const [friendUsername, setFriendUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [hasIncomingCall, setHasIncomingCall] = useState(false);
   const [isCalling, setIsCalling] = useState(false);
   const [friendName, setFriendName] = useState("");
+  const [isVideoCall, setIsVideoCall] = useState(false);
 
   const localVideo = useRef(null);
   const remoteVideo = useRef(null);
@@ -71,7 +71,8 @@ function App() {
       console.log("incomingCall", incomingCall);
       call.current = incomingCall;
       settingCallEvent(incomingCall);
-      setHasIncomingCall(incomingCall);
+      setHasIncomingCall(true);
+      setIsVideoCall(incomingCall.isVideoCall);
       setFriendName(incomingCall.fromNumber);
       setLoading(true);
     });
@@ -80,19 +81,20 @@ function App() {
   const onLogin = async () => {
     const res = await fetch(`http://localhost:8000/?u=${username}`);
     const data = await res.json();
-    setAccessToken(data.access_token);
     stringeeClient.current.connect(data.access_token);
   };
 
-  const onCall = async () => {
+  const onCall = async (videoCall = false) => {
     if (username === friendUsername) {
       alert("You cannot call yourself.");
       return;
     }
-    if (isCalling) {
+    if (isCalling && !friendUsername) {
       return;
     }
     setLoading(true);
+    setIsVideoCall(videoCall);
+
     call.current = new StringeeClient(
       stringeeClient.current,
       username,
@@ -114,6 +116,7 @@ function App() {
       console.log("answer call callback:", JSON.stringify(res));
       setHasIncomingCall(false);
       setIsCalling(true);
+      setLoading(false);
     });
   };
 
@@ -133,11 +136,16 @@ function App() {
     });
   };
 
+  // const upgradeToVideoCall = () => {
+  //   call.current.upgradeToVideoCall();
+  //   setIsVideoCall(true);
+  // };
+
   return (
     <>
       <div className="row">
         <div className="col">
-          <h1>Demo: Voice call</h1>
+          <h1>Demo: Voice call & Video Call</h1>
 
           <p>
             Status: {loggedIn ? `logged in (${username})` : "not logged in"}
@@ -172,7 +180,7 @@ function App() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                onCall();
+                onCall(false);
               }}
             >
               <div className="mb-3">
@@ -190,12 +198,24 @@ function App() {
                   onChange={(e) => setFriendUsername(e.target.value)}
                 />
               </div>
+
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={loading}
+                disabled={loading || isCalling}
               >
-                {loading ? "Calling..." : "Call"}
+                <i class="bi bi-telephone"></i>
+                {loading ? "Calling..." : "Voice Call"}
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-secondary ms-3"
+                disabled={loading || isCalling}
+                onClick={() => onCall(true)}
+              >
+                <i class="bi bi-camera-video"></i>
+                {loading ? "Calling..." : "Video Call"}
               </button>
             </form>
           )}
@@ -226,7 +246,7 @@ function App() {
             </div>
           )}
 
-          <div>
+          {/* <div>
             <video
               ref={localVideo}
               autoPlay
@@ -238,7 +258,24 @@ function App() {
               autoPlay
               style={{ width: "150px" }}
             ></video>
-          </div>
+          </div> */}
+
+          {isCalling && isVideoCall && (
+            <div className="mt-3">
+              <video
+                ref={localVideo}
+                autoPlay
+                muted
+                style={{ width: "300px" }}
+              />
+              <video
+                className="ms-3"
+                ref={remoteVideo}
+                autoPlay
+                style={{ width: "150px" }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </>
